@@ -25,10 +25,11 @@ async def ping(ctx: discord.ApplicationContext): # a slash command will be creat
 
 connections = {}
 
-CHUNK = 960
-FORMAT = pyaudio.paInt16
-CHANNELS = 2
+CHUNK_MS = 20
 RATE = 48000
+CHUNK = int(RATE/(1000/20))
+FORMAT = pyaudio.paInt32
+CHANNELS = 1
 
 @bot.command()
 async def record(ctx):  # If you're using commands.Bot, this will also work.
@@ -53,7 +54,7 @@ async def record(ctx):  # If you're using commands.Bot, this will also work.
 
     while vc.is_connected():
         data = stream.read(CHUNK)
-        vc.send_audio_packet(data, encode=False)
+        vc.send_audio_packet(data, encode=True)
 
     print('done playing',file=sys.stderr)
     stream.stop_stream()
