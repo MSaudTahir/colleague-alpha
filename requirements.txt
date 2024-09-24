@@ -2,3 +2,5 @@ py-cord[voice]
 python-dotenv
 google-generativeai
 openai
+notion-client
+pyaudio
