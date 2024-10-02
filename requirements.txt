@@ -1,6 +1,10 @@
 py-cord[voice]
 python-dotenv
-google-generativeai
-openai
+# google-generativeai
+# openai
 notion-client
 pyaudio
+transformers
+silero-vad
+soundfile
+# git+https://github.com/huggingface/parler-tts.git

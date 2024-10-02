@@ -2,3 +2,4 @@ alpha_venv/
 __pycache__/
 .env
 *.ipynb
+*.txt
