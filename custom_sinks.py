@@ -14,21 +14,15 @@ class StreamSink(Sink):
     def write(self, data, user):
         if user not in self.audio_data:
             self.audio_data[user] = []
-        if len(self.audio_data[user]) > 0: 
-            if self.audio_data[user][-1] != data :
-                self.audio_data[user].append(data)
-                self.audio_buffer.append(data) 
-            else:
-                self.audio_buffer.append(np.zeros((960*2,), dtype=np.int16).tobytes())
-        else:
+        if data:
             self.audio_data[user].append(data)
-            self.audio_buffer.append(data)
-
+            self.audio_buffer.append(data) 
+        else:
+            self.audio_buffer.append(np.zeros((960*2,), dtype=np.int16).tobytes())
 
     def clear_audio_data(self):
         self.audio_data = {}
         self.audio_buffer = []
-        self.prev_length = 0
 
     def cleanup(self):
         self.finished = True

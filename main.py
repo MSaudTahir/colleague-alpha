@@ -318,38 +318,32 @@ async def llm(ctx: discord.ApplicationContext, vc: discord.VoiceClient, sink: di
             {"role": "system", "content": "You are sales woman named Joanna. You work at Apple, and repsond to queries regarding latest Apple products and comparisons. Keep responses short and one sentence long."},
         ]   
     started = False
-    prev_length = 0
     print("Starting to record audio.")
     while vc.is_connected():
-        if len(sink.audio_data) > 0:
+        if len(sink.audio_buffer) > 0:
             audio_data = sink.audio_buffer
             mono_audio_data = np.frombuffer(b"".join(audio_data), dtype=np.int16).ravel()[::2]
-            if len(sink.audio_data[[*sink.audio_data.keys()][0]]) > prev_length:
-                prev_length = len(sink.audio_data[[*sink.audio_data.keys()][0]])
-                if started:
-                    if is_end_of_speech(mono_audio_data):
-                        print("Silence detected!")
-                        stt_transcript = stt_transcribe(audio_data=mono_audio_data)
-                        print(stt_transcript)
-                        messages.append({"role": "user", "content": stt_transcript})
-                        llm_response = llm_inference(messages=messages)
-                        print(llm_response)
-                        messages.append({"role": "assistant", "content": llm_response})
-                        tts_audio_data = tts_generation(llm_response)
-                        await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_mute=False)
-                        for i in range(0, len(tts_audio_data), 960*2):
-                            vc.send_audio_packet(safe_slice(tts_audio_data, i, i+960*2).tobytes(), encode=True)
-                            await asyncio.sleep(0.01)
-                        await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_mute=True)
-                        sink.clear_audio_data()
-                        started = False
-                        prev_length = 0
-                else:
-                    started = is_started(mono_audio_data)
-                    if started:
-                        print("Speech started!")
+            if started:
+                if is_end_of_speech(mono_audio_data):
+                    print("Silence detected!")
+                    stt_transcript = stt_transcribe(audio_data=mono_audio_data)
+                    print(stt_transcript)
+                    messages.append({"role": "user", "content": stt_transcript})
+                    llm_response = llm_inference(messages=messages)
+                    print(llm_response)
+                    messages.append({"role": "assistant", "content": llm_response})
+                    tts_audio_data = tts_generation(llm_response)
+                    await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_mute=False)
+                    for i in range(0, len(tts_audio_data), 960*2):
+                        vc.send_audio_packet(safe_slice(tts_audio_data, i, i+960*2).tobytes(), encode=True)
+                        await asyncio.sleep(0.01)
+                    await ctx.guild.change_voice_state(channel=ctx.author.voice.channel, self_mute=True)
+                    sink.clear_audio_data()
+                    started = False
             else:
-                continue
+                started = is_started(mono_audio_data)
+                if started:
+                        print("Speech started!")
 
 def get_timestamps_from_int16(audio_data):
     combined = audio_data / (1 << 15)
